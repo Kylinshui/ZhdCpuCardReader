@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button btRead;
     private Button btClear;
+    private Button btReset;
     private boolean bReadThreadGoing = true;
 
     byte[] resets = {(byte)0xAA,(byte)0xBB, 0x06, 0x00, 0x00, 0x00, 0x10, 0x02, 0x52, 0x40 };
@@ -50,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
 
         btRead = (Button)findViewById(R.id.btRead);
         btClear = (Button)findViewById(R.id.btClear);
+        btReset = (Button)findViewById(R.id.btReset);
+
         edRecv = (EditText)findViewById(R.id.edRecv);
 
         readData = new byte[readLength];
@@ -62,9 +65,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        btReset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //复位
+                mSerialPort.ZhdPowerSet(0);
+                try{
+                    Thread.sleep(100);
+                }catch (InterruptedException e){
+                    e.printStackTrace();
+                }
+                mSerialPort.ZhdPowerSet(1);
+            }
+        });
         btRead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+
 
                 write_thread = new writeThread();
                 write_thread.start();
@@ -94,6 +112,8 @@ public class MainActivity extends AppCompatActivity {
                 if(iavailable > 0){
                     edRecv.setText(msg.obj.toString());
                //     Log.i("TAG","recv:"+msg.obj.toString());
+
+                   //  mSerialPort.ZhdPowerSet(0);
                 }
             }
         };
@@ -107,29 +127,30 @@ public class MainActivity extends AppCompatActivity {
             super.run();
 
             try{
+
                 if(mOutputStream !=null){
                     //发送复位卡片指令
                     mOutputStream.write(resets);
                     try{
-                        Thread.sleep(10);
+                        Thread.sleep(50);
                     }catch (InterruptedException e){
                         e.printStackTrace();
                     }
                     //选择文件
                     mOutputStream.write(selectfile);
                     try{
-                        Thread.sleep(10);
+                        Thread.sleep(50);
                     }catch (InterruptedException e){
                         e.printStackTrace();
                     }
                     //外部认证
                     mOutputStream.write(waiburenzheng);
                     try{
-                        Thread.sleep(10);
+                        Thread.sleep(50);
                     }catch (InterruptedException e){
                         e.printStackTrace();
                     }
-                    for(int i=0;i<3;i++) {
+                    for(int i=0;i<5;i++) {
 
                   //  Log.i("TAG","write i:"+i);
 
@@ -149,6 +170,8 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 Log.i("TAG","Send.........");
+
+
 
                 }else{
                     Log.i("TAG","Send..error.......");
@@ -204,6 +227,12 @@ public class MainActivity extends AppCompatActivity {
                            msg.obj = info;
                            handler.sendMessage(msg);
                        }
+                       //else{
+                         //  Message msg = handler.obtainMessage();
+
+                          // msg.obj = Hexdata;
+                         //  handler.sendMessage(msg);
+                     //  }
                    }
                }catch (IOException e){
                    e.printStackTrace();
